@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>公司組織架構圖｜HTML 可編輯版</title>
+  <style>
+    :root {
+      --navy: #0d3b78;
+      --blue: #2f6fad;
+      --blue-2: #3d7fbe;
+      --light-blue: #eaf3fc;
+      --line-blue: #0d3b78;
+      --border-blue: #9fc0e5;
+      --text: #14213d;
+      --muted: #64748b;
+      --bg: #f7faff;
+      --card: #ffffff;
+      --shadow: 0 16px 35px rgba(13, 59, 120, 0.12);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 5% 8%, rgba(47, 111, 173, 0.14) 0 2px, transparent 3px) 0 0 / 20px 20px,
+        linear-gradient(135deg, #ffffff 0%, var(--bg) 52%, #eef6ff 100%);
+      min-height: 100vh;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 22px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(159, 192, 229, 0.45);
+    }
+
+    .toolbar-title {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .export-message {
+      width: 100%;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: right;
+      line-height: 1.5;
+    }
+
+    .export-message a {
+      color: var(--navy);
+      font-weight: 900;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .png-result-panel {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 99;
+      width: min(420px, calc(100vw - 36px));
+      max-height: 78vh;
+      overflow: auto;
+      padding: 14px;
+      border: 1px solid rgba(13, 59, 120, 0.18);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 18px 45px rgba(13, 59, 120, 0.18);
+      backdrop-filter: blur(12px);
+    }
+
+    .png-result-panel h3 {
+      margin: 0 0 8px;
+      color: var(--navy);
+      font-size: 16px;
+    }
+
+    .png-result-panel p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .png-result-panel img {
+      display: block;
+      width: 100%;
+      border: 1px solid rgba(159, 192, 229, 0.7);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .png-result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .png-result-actions a,
+    .png-result-actions button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      border: 1px solid rgba(13, 59, 120, 0.18);
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: #fff;
+      color: var(--navy);
+      font-size: 13px;
+      font-weight: 900;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button {
+      border: 1px solid rgba(13, 59, 120, 0.18);
+      background: #fff;
+      color: var(--navy);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.18s ease;
+      box-shadow: 0 4px 12px rgba(13, 59, 120, 0.08);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: #eef6ff;
+      border-color: rgba(13, 59, 120, 0.35);
+    }
+
+    button.primary {
+      background: var(--navy);
+      color: #fff;
+      border-color: var(--navy);
+    }
+
+    button.danger {
+      color: #b42318;
+      border-color: rgba(180, 35, 24, 0.24);
+    }
+
+    .page {
+      width: min(1600px, 100%);
+      margin: 0 auto;
+      padding: 38px 28px 58px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page::after {
+      content: "";
+      position: absolute;
+      right: -140px;
+      bottom: -120px;
+      width: 760px;
+      height: 260px;
+      border-radius: 50%;
+      border: 24px solid rgba(61, 127, 190, 0.12);
+      pointer-events: none;
+    }
+
+    .chart-title {
+      margin: 0 0 26px;
+      text-align: center;
+      font-size: clamp(34px, 4vw, 58px);
+      letter-spacing: 0.14em;
+      color: var(--navy);
+      font-weight: 900;
+    }
+
+    .editable {
+      outline: 0;
+      border-radius: 8px;
+      transition: 0.15s ease;
+      min-height: 1.2em;
+    }
+
+    .editable:hover,
+    .editable:focus {
+      background: rgba(255, 221, 87, 0.22);
+      box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.35);
+    }
+
+    .top-node-wrap {
+      display: flex;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .top-node {
+      width: 360px;
+      overflow: hidden;
+      border: 3px solid var(--navy);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .top-role {
+      padding: 16px 20px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--navy), #14549b);
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+
+    .top-name {
+      padding: 16px 20px 18px;
+      font-size: 34px;
+      font-weight: 700;
+      background: #fff;
+    }
+
+    .tree {
+      position: relative;
+      margin-top: 72px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(230px, 1fr));
+      gap: 26px;
+      z-index: 1;
+    }
+
+    .tree::before {
+      content: "";
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      top: -38px;
+      height: 4px;
+      background: var(--line-blue);
+      border-radius: 999px;
+    }
+
+    .tree::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -160px;
+      width: 4px;
+      height: 126px;
+      transform: translateX(-50%);
+      background: var(--line-blue);
+      border-radius: 999px;
+    }
+
+    .department {
+      position: relative;
+      min-height: 620px;
+      border: 2px solid rgba(159, 192, 229, 0.85);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 14px 28px rgba(13, 59, 120, 0.08);
+      overflow: hidden;
+    }
+
+    .department::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -38px;
+      width: 4px;
+      height: 38px;
+      transform: translateX(-50%);
+      background: var(--line-blue);
+    }
+
+    .department::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -48px;
+      width: 18px;
+      height: 18px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: var(--blue);
+      border: 3px solid var(--line-blue);
+      box-shadow: 0 0 0 4px #f7faff;
+    }
+
+    .department-header {
+      padding: 18px 16px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      font-size: 30px;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: 0.06em;
+    }
+
+    .department-body {
+      padding: 20px 18px 24px;
+    }
+
+    .section-label {
+      margin: 0 auto 9px;
+      width: 82%;
+      padding: 8px 12px;
+      border-radius: 10px;
+      color: var(--navy);
+      background: var(--light-blue);
+      text-align: center;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+
+    .person {
+      position: relative;
+      margin: 8px auto;
+      width: 92%;
+      padding: 8px 70px 8px 12px;
+      min-height: 39px;
+      border: 2px solid var(--border-blue);
+      border-radius: 10px;
+      background: #fff;
+      text-align: center;
+      font-size: 22px;
+      line-height: 1.25;
+      font-weight: 650;
+    }
+
+    .person .remove-person {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 52px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(180, 35, 24, 0.24);
+      padding: 0;
+      background: #fff1f0;
+      color: #b42318;
+      font-size: 13px;
+      line-height: 24px;
+      box-shadow: none;
+      opacity: 1;
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    .person .remove-person:hover {
+      background: #ffd8d6;
+      transform: translateY(-50%);
+    }
+
+    .add-member {
+      display: block;
+      margin: 14px auto 0;
+      font-size: 13px;
+      padding: 7px 11px;
+    }
+
+    .head-block {
+      margin-bottom: 20px;
+    }
+
+    .hint {
+      margin: 24px auto 0;
+      width: fit-content;
+      max-width: 92%;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+      text-align: center;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(159, 192, 229, 0.45);
+      border-radius: 14px;
+      padding: 10px 14px;
+    }
+
+    body.exporting .toolbar,
+    body.exporting .hint,
+    body.exporting .remove-person,
+    body.exporting .add-member {
+      display: none !important;
+    }
+
+    body.exporting .editable,
+    body.exporting .editable:hover,
+    body.exporting .editable:focus {
+      background: transparent !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+
+    @media print {
+      .toolbar,
+      .hint,
+      .remove-person,
+      .add-member {
+        display: none !important;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .page {
+        width: 100%;
+        padding: 14mm 10mm;
+      }
+
+      .department {
+        box-shadow: none;
+      }
+    }
+
+    @media (max-width: 1250px) {
+      .tree {
+        grid-template-columns: repeat(2, minmax(260px, 1fr));
+        margin-top: 54px;
+      }
+
+      .tree::before,
+      .tree::after,
+      .department::before,
+      .department::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .toolbar-actions {
+        justify-content: flex-start;
+      }
+
+      .tree {
+        grid-template-columns: 1fr;
+      }
+
+      .department {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="toolbar-title">
+      可直接點擊標題、職稱、姓名進行修改；每個姓名右側有「刪除」按鈕，按「新增成員」可增加姓名。
+    </div>
+    <div class="toolbar-actions">
+      <button class="primary" onclick="saveChart()">儲存到瀏覽器</button>
+      <button onclick="loadChart()">載入儲存版本</button>
+      <button onclick="downloadHTML()">下載 HTML</button>
+      <button onclick="downloadPNG()">另存 PNG</button>
+      <button onclick="window.print()">列印 / 另存 PDF</button>
+      <button class="danger" onclick="resetChart()">還原預設</button>
+      <div class="export-message" id="exportMessage"></div>
+    </div>
+  </div>
+
+  <main class="page" id="page">
+    <h1 class="chart-title editable" contenteditable="true">公司組織架構圖</h1>
+
+    <section class="top-node-wrap">
+      <div class="top-node">
+        <div class="top-role editable" contenteditable="true">總經理</div>
+        <div class="top-name editable" contenteditable="true">吳耿宏</div>
+      </div>
+    </section>
+
+    <section class="tree" id="departmentTree">
+      <article class="department">
+        <div class="department-header editable" contenteditable="true">鑑識服務處</div>
+        <div class="department-body">
+          <div class="head-block">
+            <div class="section-label editable" contenteditable="true">處長</div>
+            <div class="person"><span class="editable" contenteditable="true">蔡宗桂</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+          </div>
+          <div class="section-label editable" contenteditable="true">成員</div>
+          <div class="members">
+            <div class="person"><span class="editable" contenteditable="true">陳建仰</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">紀怡呈</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">吳家恩</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">朱威翰</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">林哲緯</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">謝耀宏</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">徐貫勝</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">張庭榕</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">蘇上瑋</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">蕭靜岩</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">黃柏銘</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">梁創育</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">鄭宇文</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+          </div>
+          <button type="button" class="add-member">＋新增成員</button>
+        </div>
+      </article>
+
+      <article class="department">
+        <div class="department-header editable" contenteditable="true">系統開發處</div>
+        <div class="department-body">
+          <div class="section-label editable" contenteditable="true">成員</div>
+          <div class="members">
+            <div class="person"><span class="editable" contenteditable="true">陳昇昇</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">黃建忠</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">黃渝庭</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">郭勝騎</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">包欣蓉</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+          </div>
+          <button type="button" class="add-member">＋新增成員</button>
+        </div>
+      </article>
+
+      <article class="department">
+        <div class="department-header editable" contenteditable="true">業務處</div>
+        <div class="department-body">
+          <div class="section-label editable" contenteditable="true">成員</div>
+          <div class="members">
+            <div class="person"><span class="editable" contenteditable="true">吳正信</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">張凱鈞</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">黃郁婷</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">張詠緯</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">陳品妤</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+          </div>
+          <button type="button" class="add-member">＋新增成員</button>
+        </div>
+      </article>
+
+      <article class="department">
+        <div class="department-header editable" contenteditable="true">營運規劃處</div>
+        <div class="department-body">
+          <div class="head-block">
+            <div class="section-label editable" contenteditable="true">處長</div>
+            <div class="person"><span class="editable" contenteditable="true">黃仕銘</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+          </div>
+          <div class="section-label editable" contenteditable="true">成員</div>
+          <div class="members">
+            <div class="person"><span class="editable" contenteditable="true">董家齊</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">鍾明峰</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">譚淨霖</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">胡婉柔</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+          </div>
+          <button type="button" class="add-member">＋新增成員</button>
+        </div>
+      </article>
+
+      <article class="department">
+        <div class="department-header editable" contenteditable="true">行政管理處</div>
+        <div class="department-body">
+          <div class="section-label editable" contenteditable="true">成員</div>
+          <div class="members">
+            <div class="person"><span class="editable" contenteditable="true">陳心雯</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+            <div class="person"><span class="editable" contenteditable="true">許叔慈</span><button type="button" class="remove-person" title="刪除">刪除</button></div>
+          </div>
+          <button type="button" class="add-member">＋新增成員</button>
+        </div>
+      </article>
+    </section>
+
+    <p class="hint">使用方式：點擊任一文字即可直接編輯。完成後可按「儲存到瀏覽器」保留目前版本，也可按「下載 HTML」輸出單一 HTML 檔案。</p>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "editable-org-chart-html-v1";
+    const DEFAULT_HTML = document.getElementById("page").innerHTML;
+
+    function removePerson(button) {
+      const person = button.closest(".person");
+      if (!person) return;
+      person.remove();
+    }
+
+    function addMember(button) {
+      const body = button.closest(".department-body");
+      const members = body.querySelector(".members");
+      const person = document.createElement("div");
+      person.className = "person";
+      person.innerHTML = '<span class="editable" contenteditable="true">新成員</span><button type="button" class="remove-person" title="刪除">刪除</button>';
+      members.appendChild(person);
+      person.querySelector(".editable").focus();
+      selectText(person.querySelector(".editable"));
+    }
+
+    document.addEventListener("click", function(event) {
+      const deleteButton = event.target.closest(".remove-person");
+      if (deleteButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        removePerson(deleteButton);
+        return;
+      }
+
+      const addButton = event.target.closest(".add-member");
+      if (addButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        addMember(addButton);
+      }
+    });
+
+    function selectText(element) {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    function saveChart() {
+      localStorage.setItem(STORAGE_KEY, document.getElementById("page").innerHTML);
+      alert("已儲存到此瀏覽器。下次打開此 HTML，可按『載入儲存版本』取回。 ");
+    }
+
+    function loadChart() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) {
+        alert("目前沒有已儲存版本。");
+        return;
+      }
+      document.getElementById("page").innerHTML = saved;
+      alert("已載入儲存版本。");
+    }
+
+    function resetChart() {
+      if (!confirm("確定要還原預設內容？目前修改會被覆蓋。")) return;
+      document.getElementById("page").innerHTML = DEFAULT_HTML;
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    function downloadHTML() {
+      const clonedDoc = document.documentElement.cloneNode(true);
+      const currentPage = document.getElementById("page").innerHTML;
+      clonedDoc.querySelector("#page").innerHTML = currentPage;
+
+      const html = "<!DOCTYPE html>\n" + clonedDoc.outerHTML;
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "公司組織架構圖_可編輯版.html";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeForSVG(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function showPNGResult(dataUrl, fileName) {
+      let panel = document.getElementById("pngResultPanel");
+      if (!panel) {
+        panel = document.createElement("div");
+        panel.id = "pngResultPanel";
+        panel.className = "png-result-panel";
+        document.body.appendChild(panel);
+      }
+
+      panel.innerHTML = "";
+
+      const title = document.createElement("h3");
+      title.textContent = "PNG 已產生";
+
+      const description = document.createElement("p");
+      description.textContent = "如果瀏覽器沒有自動下載，請點『下載 PNG』；若仍被封鎖，可在下方圖片上按右鍵另存圖片。";
+
+      const preview = document.createElement("img");
+      preview.src = dataUrl;
+      preview.alt = "公司組織架構圖 PNG 預覽";
+
+      const actions = document.createElement("div");
+      actions.className = "png-result-actions";
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = dataUrl;
+      downloadLink.download = fileName;
+      downloadLink.textContent = "下載 PNG";
+
+      const openLink = document.createElement("a");
+      openLink.href = dataUrl;
+      openLink.target = "_blank";
+      openLink.rel = "noopener";
+      openLink.textContent = "開新分頁";
+
+      const closeButton = document.createElement("button");
+      closeButton.type = "button";
+      closeButton.textContent = "關閉";
+      closeButton.addEventListener("click", () => panel.remove());
+
+      actions.appendChild(downloadLink);
+      actions.appendChild(openLink);
+      actions.appendChild(closeButton);
+
+      panel.appendChild(title);
+      panel.appendChild(description);
+      panel.appendChild(preview);
+      panel.appendChild(actions);
+
+      setTimeout(() => {
+        try {
+          downloadLink.click();
+        } catch (error) {
+          // 若瀏覽器或預覽環境封鎖自動下載，仍保留手動下載與右鍵另存。
+        }
+      }, 50);
+    }
+
+    async function downloadPNG() {
+      const page = document.getElementById("page");
+      const message = document.getElementById("exportMessage");
+      if (!page) return;
+
+      if (document.activeElement && document.activeElement.blur) {
+        document.activeElement.blur();
+      }
+
+      if (message) {
+        message.textContent = "PNG 產生中，請稍候...";
+      }
+
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      try {
+        const rect = page.getBoundingClientRect();
+        const scale = 2;
+        const clone = page.cloneNode(true);
+
+        clone.querySelectorAll(".remove-person, .add-member, .hint").forEach(el => el.remove());
+        clone.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+        clone.querySelectorAll(".editable").forEach(el => {
+          el.style.boxShadow = "none";
+          el.style.outline = "none";
+        });
+
+        // 匯出 PNG 時，部分瀏覽器會無法正確渲染 CSS gradient，
+        // 導致白字標題區塊變成白底而看起來像「文字消失」。
+        // 這裡改用 inline style 強制指定實心底色與文字顏色。
+        clone.querySelectorAll(".top-role").forEach(el => {
+          el.style.display = "block";
+          el.style.background = "#0d3b78";
+          el.style.color = "#ffffff";
+          el.style.fontWeight = "900";
+        });
+
+        clone.querySelectorAll(".department-header").forEach(el => {
+          el.style.display = "block";
+          el.style.background = "#2f6fad";
+          el.style.color = "#ffffff";
+          el.style.fontWeight = "900";
+        });
+
+        clone.querySelectorAll(".section-label").forEach(el => {
+          el.style.background = "#eaf3fc";
+          el.style.color = "#0d3b78";
+        });
+
+        clone.style.width = rect.width + "px";
+        clone.style.margin = "0";
+        clone.style.background = "linear-gradient(135deg, #ffffff 0%, #f7faff 52%, #eef6ff 100%)";
+
+        const styleText = Array.from(document.querySelectorAll("style"))
+          .map(style => style.textContent)
+          .join("\n") + `
+            .toolbar, .hint, .remove-person, .add-member, .png-result-panel { display: none !important; }
+            .editable, .editable:hover, .editable:focus {
+              box-shadow: none !important;
+              outline: none !important;
+            }
+            .top-role {
+              background: #0d3b78 !important;
+              color: #ffffff !important;
+            }
+            .department-header {
+              background: #2f6fad !important;
+              color: #ffffff !important;
+            }
+            .section-label {
+              background: #eaf3fc !important;
+              color: #0d3b78 !important;
+            }
+            body { margin: 0; background: #ffffff; }
+          `;
+
+        const xhtml = `
+          <div xmlns="http://www.w3.org/1999/xhtml">
+            <style>${escapeForSVG(styleText)}</style>
+            ${clone.outerHTML}
+          </div>
+        `;
+
+        const svgText = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}" viewBox="0 0 ${rect.width} ${rect.height}">
+            <foreignObject width="100%" height="100%">${xhtml}</foreignObject>
+          </svg>
+        `;
+
+        const svgUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgText);
+        const image = new Image();
+
+        image.onload = function() {
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.ceil(rect.width * scale);
+          canvas.height = Math.ceil(rect.height * scale);
+
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.scale(scale, scale);
+          ctx.drawImage(image, 0, 0);
+
+          const pngDataUrl = canvas.toDataURL("image/png");
+          showPNGResult(pngDataUrl, "公司組織架構圖.png");
+
+          if (message) {
+            message.textContent = "PNG 已產生；若沒有自動下載，請使用右下角預覽區的下載或右鍵另存。";
+          }
+        };
+
+        image.onerror = function() {
+          if (message) {
+            message.textContent = "PNG 產生失敗：瀏覽器不支援將此 HTML 轉成圖片。可用『列印 / 另存 PDF』替代。";
+          } else {
+            alert("PNG 產生失敗：瀏覽器不支援將此 HTML 轉成圖片。可用『列印 / 另存 PDF』替代。");
+          }
+        };
+
+        image.src = svgUrl;
+      } catch (error) {
+        if (message) {
+          message.textContent = "PNG 匯出失敗：" + error.message;
+        } else {
+          alert("PNG 匯出失敗：" + error.message);
+        }
+      }
+    }
+
+    document.addEventListener("paste", function(event) {
+      const target = event.target;
+      if (!target.classList || !target.classList.contains("editable")) return;
+      event.preventDefault();
+      const text = (event.clipboardData || window.clipboardData).getData("text/plain");
+      document.execCommand("insertText", false, text);
+    });
+  </script>
+</body>
+</html>
